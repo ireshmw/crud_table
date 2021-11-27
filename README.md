@@ -50,9 +50,7 @@ which you are use with this CRUD UI. <br>
 ```
 emptyEntityFactory: () => User();
 ```
+Check the [example](https://github.com/ireshmw/crud_table/tree/main/example) project.
 
 ## Additional information
-
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+Inspiered by [Vaadin Crud UI Add-on](https://vaadin.com/directory/component/crud-ui-add-on)
