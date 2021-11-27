@@ -10,10 +10,7 @@ class CrudViewSource<T> {
   final T Function() emptyEntityFactory;
   List<Widget> Function(T data,int index) createRows;
   List<FormSection> Function(T data)? createForm;
-  //ValueChanged<Pagination> onPageChange;
   Future<List<T>> Function(Pagination pagination) onPageChange;
-
-
   CrudActionListener? crudActionListener;
 
   CrudViewSource({required this.columns, required this.rowHeight,required this.pageLimit,required this.emptyEntityFactory, required this.createRows, this.createForm,required this.onPageChange, this.crudActionListener});

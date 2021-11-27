@@ -134,8 +134,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 items.add(FormItem(
                   ratio: 1,
                   item: TextFormField(
-                    // key:  d.description != null ? Key(d.description.toString()) : null,
-                    // initialValue: d.description != null ? d.description : null,
                     key: CrudTableUtil.formFieldKey(d.description),
                     initialValue:
                     CrudTableUtil.formFieldInitValue(d.description),
@@ -190,7 +188,6 @@ class _MyHomePageState extends State<MyHomePage> {
           data as UserTask;
           UserTasksService userS =  UserTasksService.instance!;
           return userS.updateTask(data, data.id!.toInt());
-          return null;
         },
         delete: (data) async {
           data as UserTask;
@@ -199,8 +196,6 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       ),
       onPageChange: (pagination) async {
-        // UserAbleTasksService userS =
-        //     await context.read(userAbleTasksServiceProvider);
         UserTasksService userS =  UserTasksService.instance!;
         return userS.getTasks(pagination.pageNumber, pagination.limit);
       },

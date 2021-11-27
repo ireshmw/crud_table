@@ -50,6 +50,10 @@ which you are use with this CRUD UI. <br>
 ```
 emptyEntityFactory: () => User();
 ```
+**Note :**<br>
+_Give unique on every `FormItem` otherwise form data change will not work as we expect._ 
+
+
 Check the [example](https://github.com/ireshmw/crud_table/tree/main/example) project.
 
 ## Additional information

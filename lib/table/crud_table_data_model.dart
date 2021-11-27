@@ -8,6 +8,6 @@ class CrudTableDataModel<T> {
 
    @override
   String toString() {
-    return 'MyTableDataModel{isError: $isError, isLoading: $isLoading, data: $data}';
+    return 'CrudTableDataModel{isError: $isError, isLoading: $isLoading, data: $data}';
   }
 }
