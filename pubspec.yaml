@@ -1,6 +1,6 @@
 name: crud_table
 description: CRUD Table View with lazy loading
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/ireshmw/crud_table
 
 environment:
