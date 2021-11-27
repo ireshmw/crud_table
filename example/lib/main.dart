@@ -71,18 +71,18 @@ class _MyHomePageState extends State<MyHomePage> {
       columns: ["id", "code", "description", "active"],
       pageLimit: 20,
       rowHeight: 30,
-      emptyEntityFactory: () => UserTask(),
-      createRows: (d, index) {
-        d as UserTask;
+      emptyEntityFactory: () => UserTask(), // here we provide the empty object, which we get back when click on the submit button of the form
+      createRows: (data, index) {
+        data as UserTask;
         List<Widget> rows = [];
-        rows.add(Text(d.id.toString(), style: const TextStyle(fontSize: 16)));
-        rows.add(Text(d.taskCode.toString(), style: const TextStyle(fontSize: 16)));
-        rows.add(Text(d.description.toString(), style: const TextStyle(fontSize: 16)));
-        rows.add(Text(d.active.toString(), style: const TextStyle(fontSize: 16)));
+        rows.add(Text(data.id.toString(), style: const TextStyle(fontSize: 16)));
+        rows.add(Text(data.taskCode.toString(), style: const TextStyle(fontSize: 16)));
+        rows.add(Text(data.description.toString(), style: const TextStyle(fontSize: 16)));
+        rows.add(Text(data.active.toString(), style: const TextStyle(fontSize: 16)));
         return rows;
       },
-      createForm: (d) {
-        d as UserTask;
+      createForm: (data) {
+        data as UserTask;
 
         List<FormSection> fields = [];
 
@@ -95,8 +95,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 items.add(FormItem(
                   ratio: 1,
                   item: TextFormField(
-                    key: CrudTableUtil.formFieldKey(d.id),
-                    initialValue: CrudTableUtil.formFieldInitValue(d.id),
+                    key: CrudTableUtil.formFieldKey(data.id),
+                    initialValue: CrudTableUtil.formFieldInitValue(data.id),
                     decoration: const InputDecoration(labelText: 'Id', border: OutlineInputBorder(),),
                     enabled: false,
                   ),
@@ -104,10 +104,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 items.add(FormItem(
                   ratio: 1,
                   item: TextFormField(
-                    key: CrudTableUtil.formFieldKey(d.taskCode),
-                    initialValue: CrudTableUtil.formFieldInitValue(d.taskCode),
+                    key: CrudTableUtil.formFieldKey(data.taskCode),
+                    initialValue: CrudTableUtil.formFieldInitValue(data.taskCode),
                     onSaved: (v) {
-                      d.taskCode = v;
+                      data.taskCode = v;
                     },
                     validator: (value) {
                       if (value!.isEmpty) {
@@ -134,9 +134,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 items.add(FormItem(
                   ratio: 1,
                   item: TextFormField(
-                    key: CrudTableUtil.formFieldKey(d.description),
+                    key: CrudTableUtil.formFieldKey(data.description),
                     initialValue:
-                    CrudTableUtil.formFieldInitValue(d.description),
+                    CrudTableUtil.formFieldInitValue(data.description),
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Enter a Description!';
@@ -144,7 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       return null;
                     },
                     onSaved: (v) {
-                      d.description = v;
+                      data.description = v;
                     },
                     decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder(),),
                   ),
@@ -159,10 +159,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     item: CheckboxListTile(
                       title: const Text("Active"),
                       controlAffinity: ListTileControlAffinity.leading,
-                      value: d.active ?? false,
+                      value: data.active ?? false,
                       onChanged: (bool? value) {
                         setState(() {
-                          d.active = value!;
+                          data.active = value!;
                         });
                       },
                     ),

@@ -14,6 +14,9 @@ import 'package:split_view/split_view.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 
+/// CRUD Table class
+/// user have to provide CrudViewSource which have all the configurations and listeners
+
 class CrudTableColumnSizeChangeNotifier extends ChangeNotifier {
   CrudTableColumnSizeChangeNotifier();
   void notify() {
@@ -45,8 +48,8 @@ class CrudTableCrudActionChangingNotifier extends ChangeNotifier {
   }
 }
 
-
 enum CrudAction { init, refresh, add, edit, delete }
+
 class Pagination {
   int pageNumber;
   int limit;
@@ -59,8 +62,8 @@ class Pagination {
   }
 }
 
-
 class CrudTable<T> extends StatefulWidget {
+  /// notify when user click on a row of the table
   ValueChanged<dynamic> onTap;
   CrudViewSource crudViewSource;
 
@@ -75,9 +78,6 @@ class CrudTable<T> extends StatefulWidget {
   @override
   _CrudTableState createState() => _CrudTableState( crudActionChangeProvider, pageNumberChangeProvider , tableBodyRebuildNotifierProvider, tableDataProvider);
 }
-
-
-
 
 class _CrudTableState<T> extends State<CrudTable> {
   AutoDisposeChangeNotifierProvider<CrudTableCrudActionChangingNotifier> crudActionChangeProvider;

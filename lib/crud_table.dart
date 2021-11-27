@@ -7,7 +7,6 @@ export 'table/form_row.dart';
 export 'table/form_section.dart';
 export 'table/crud_table.dart';
 export 'table/crud_table_data_model.dart';
-export 'table/crud_table_row.dart';
 export 'table/crud_table_row_holder.dart';
 export 'table/crud_table_util.dart';
 

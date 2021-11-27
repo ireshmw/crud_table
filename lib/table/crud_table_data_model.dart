@@ -1,4 +1,5 @@
 
+// internal use
 class CrudTableDataModel<T> {
    bool? isError = false;
    bool? isLoading = false;
