@@ -705,8 +705,7 @@ class _CrudTableState<T> extends State<CrudTable> {
   }
 
   notifyPageChange(int page) {
-    print('page refresh call............***********************************8');
-    Future<List> data = widget.crudViewSource.onPageChange(new Pagination(pageNumber: page, limit: widget.crudViewSource.pageLimit));
+    Future<List> data = widget.crudViewSource.onPageChange(Pagination(pageNumber: page, limit: widget.crudViewSource.pageLimit));
     data.then(
           (value) => {context.read(tableDataProvider.notifier).setData(CrudTableDataModel(data: value))},
       onError: (r) {
