@@ -45,16 +45,11 @@ import 'package:crud_table/crud_table.dart';
 When you use `CrudTable` there you have to pass a `CurdViewSource` field, and it cannot be `null`. <br>
 In `CurdViewSource` you can see there is a function field call `emptyEntityFactory` there you have to provide an empty Object 
 which you are use with this CRUD UI. <br>
-Ex :<br>
-  &nbsp;  lets say you use` User.class` with this CrudTable, then the `emptyEntityFactory` will be<br>
-       &nbsp; `emptyEntityFactory: () => User();`
-
----
-**NOTE**
-
-It works with almost all markdown flavours (the below blank line matters).
-
----
+**Ex** :<br>
+  &nbsp;Let's say you use` User.class` with this CrudTable, then the `emptyEntityFactory` will be<br>
+```
+emptyEntityFactory: () => User();
+```
 
 ## Additional information
 
