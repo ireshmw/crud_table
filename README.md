@@ -6,8 +6,8 @@ It consists of a Lazy loading function, resizable columns, and integrated CRUD F
 ## Features
 - Lazy loading Table
 - Resizable columns
-- Intergrated CRUD Form
-- Customizeble UI
+- Integrated CRUD Form
+- Customizable UI
 
 | <img src="https://github.com/ireshmw/crud_table/blob/main/img/crud_table_anim_1.gif" width="400"/><br /><sub><b>CRUD UI</b></sub> | <img src="https://github.com/ireshmw/crud_table/blob/main/img/crud_table_anim_lazy_load.gif" width="400"/><br /><sub><b>Lazy loading</b></sub> |
 | :---: | :---: |
@@ -42,7 +42,12 @@ import 'package:crud_table/crud_table.dart';
 
 <img src="https://github.com/ireshmw/crud_table/blob/main/img/crud_table_uml.png" />
 
-When you user CrudTable there you have to pass a CurdViewSource field and it is cannot be null, 
+When you use `CrudTable` there you have to pass a `CurdViewSource` field, and it cannot be `null`.
+In `CurdViewSource` you can see there is a function field call `emptyEntityFactory` there you have to provide an empty Object 
+which you are use with this CRUD UI 
+for an Ex :
+    lets say you use` User.class` with this CrudTable, then the `emptyEntityFactory` will be
+        `emptyEntityFactory: () => User();`
 
 ---
 **NOTE**
