@@ -54,3 +54,6 @@ Check the [example](https://github.com/ireshmw/crud_table/tree/main/example) pro
 
 ## Additional information
 Inspiered by [Vaadin Crud UI Add-on](https://vaadin.com/directory/component/crud-ui-add-on)
+
+## License
+Licensed under the [Apache License, Version 2.0](LICENSE)
