@@ -40,7 +40,7 @@ import 'package:crud_table/crud_table.dart';
 ## Usage
 <img src="https://github.com/ireshmw/crud_table/blob/main/img/crud_table_ui_explain.jpg" />
 
-<img src="https://github.com/ireshmw/crud_table/blob/main/img/crud_table_uml_02.png" />
+<img src="https://github.com/ireshmw/crud_table/blob/main/img/crud_table_uml_03.png" />
 
 When you use `CrudTable` there you have to pass a `CurdViewSource` field, and it cannot be `null`. <br>
 In `CurdViewSource` you can see there is a function field call `emptyEntityFactory` there you have to provide an empty Object 
