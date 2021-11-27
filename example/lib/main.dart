@@ -41,10 +41,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -60,7 +58,6 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             ),
           ),
-
         ],
       ),
     );
@@ -71,14 +68,19 @@ class _MyHomePageState extends State<MyHomePage> {
       columns: ["id", "code", "description", "active"],
       pageLimit: 20,
       rowHeight: 30,
-      emptyEntityFactory: () => UserTask(), // here we provide the empty object, which we get back when click on the submit button of the form
+      emptyEntityFactory: () =>
+          UserTask(), // here we provide the empty object, which we get back when click on the submit button of the form
       createRows: (data, index) {
         data as UserTask;
         List<Widget> rows = [];
-        rows.add(Text(data.id.toString(), style: const TextStyle(fontSize: 16)));
-        rows.add(Text(data.taskCode.toString(), style: const TextStyle(fontSize: 16)));
-        rows.add(Text(data.description.toString(), style: const TextStyle(fontSize: 16)));
-        rows.add(Text(data.active.toString(), style: const TextStyle(fontSize: 16)));
+        rows.add(
+            Text(data.id.toString(), style: const TextStyle(fontSize: 16)));
+        rows.add(Text(data.taskCode.toString(),
+            style: const TextStyle(fontSize: 16)));
+        rows.add(Text(data.description.toString(),
+            style: const TextStyle(fontSize: 16)));
+        rows.add(
+            Text(data.active.toString(), style: const TextStyle(fontSize: 16)));
         return rows;
       },
       createForm: (data) {
@@ -97,7 +99,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   item: TextFormField(
                     key: CrudTableUtil.formFieldKey(data.id),
                     initialValue: CrudTableUtil.formFieldInitValue(data.id),
-                    decoration: const InputDecoration(labelText: 'Id', border: OutlineInputBorder(),),
+                    decoration: const InputDecoration(
+                      labelText: 'Id',
+                      border: OutlineInputBorder(),
+                    ),
                     enabled: false,
                   ),
                 ));
@@ -105,7 +110,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   ratio: 1,
                   item: TextFormField(
                     key: CrudTableUtil.formFieldKey(data.taskCode),
-                    initialValue: CrudTableUtil.formFieldInitValue(data.taskCode),
+                    initialValue:
+                        CrudTableUtil.formFieldInitValue(data.taskCode),
                     onSaved: (v) {
                       data.taskCode = v;
                     },
@@ -115,7 +121,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       }
                       return null;
                     },
-                    decoration: const InputDecoration(labelText: 'Code', border: OutlineInputBorder(),),
+                    decoration: const InputDecoration(
+                      labelText: 'Code',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                 ));
                 return items;
@@ -136,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   item: TextFormField(
                     key: CrudTableUtil.formFieldKey(data.description),
                     initialValue:
-                    CrudTableUtil.formFieldInitValue(data.description),
+                        CrudTableUtil.formFieldInitValue(data.description),
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Enter a Description!';
@@ -146,7 +155,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     onSaved: (v) {
                       data.description = v;
                     },
-                    decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder(),),
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                 ));
 
@@ -181,22 +193,22 @@ class _MyHomePageState extends State<MyHomePage> {
       },
       crudActionListener: CrudActionListener<UserTask>(
         add: (data) async {
-          UserTasksService userS =  UserTasksService.instance!;
+          UserTasksService userS = UserTasksService.instance!;
           return userS.addTask(data);
         },
         edit: (data) async {
           data as UserTask;
-          UserTasksService userS =  UserTasksService.instance!;
+          UserTasksService userS = UserTasksService.instance!;
           return userS.updateTask(data, data.id!.toInt());
         },
         delete: (data) async {
           data as UserTask;
-          UserTasksService userS =  UserTasksService.instance!;
+          UserTasksService userS = UserTasksService.instance!;
           return userS.deleteTask(data.id!.toInt());
         },
       ),
       onPageChange: (pagination) async {
-        UserTasksService userS =  UserTasksService.instance!;
+        UserTasksService userS = UserTasksService.instance!;
         return userS.getTasks(pagination.pageNumber, pagination.limit);
       },
     );

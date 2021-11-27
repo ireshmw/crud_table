@@ -1,13 +1,12 @@
-
 // internal use
 class CrudTableDataModel<T> {
-   bool? isError = false;
-   bool? isLoading = false;
-   List<T>? data;
+  bool? isError = false;
+  bool? isLoading = false;
+  List<T>? data;
 
-   CrudTableDataModel({this.isError, this.isLoading, this.data});
+  CrudTableDataModel({this.isError, this.isLoading, this.data});
 
-   @override
+  @override
   String toString() {
     return 'CrudTableDataModel{isError: $isError, isLoading: $isLoading, data: $data}';
   }

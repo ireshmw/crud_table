@@ -13,7 +13,10 @@ class UserTasksService {
   void generateTestData() {
     for (int i = 1; i < 100; i++) {
       taskData!.add(UserTask(
-          id: i, taskCode: "$i - Task", description: "$i - Description",active: true));
+          id: i,
+          taskCode: "$i - Task",
+          description: "$i - Description",
+          active: true));
     }
   }
 
@@ -25,7 +28,7 @@ class UserTasksService {
   }
 
   Future<List<UserTask>> getTasks(int offSet, int limit) async {
-    return  Future.value(taskData);
+    return Future.value(taskData);
   }
 
   Future<UserTask> addTask(UserTask ableTask) async {
