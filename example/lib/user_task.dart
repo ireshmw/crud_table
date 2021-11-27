@@ -1,17 +1,17 @@
 import 'package:json_annotation/json_annotation.dart';
-part 'user_able_task.g.dart';
+part 'user_task.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-class UserAbleTask {
+class UserTask {
 
   int? id;
   bool? active;
   String? description;
   String? taskCode;
 
-  UserAbleTask({ this.id, this.active, this.description,this.taskCode});
+  UserTask({ this.id, this.active, this.description,this.taskCode});
 
- factory UserAbleTask.fromJson(Map<String, dynamic> json) => _$UserAbleTaskFromJson(json);
+ factory UserTask.fromJson(Map<String, dynamic> json) => _$UserAbleTaskFromJson(json);
   Map<String, dynamic> toJson() => _$UserAbleTaskToJson(this);
 
   @override

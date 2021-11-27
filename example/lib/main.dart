@@ -4,8 +4,8 @@ import 'package:crud_table/table/crud_table_row_holder.dart';
 import 'package:crud_table/table/form_item.dart';
 import 'package:crud_table/table/form_row.dart';
 import 'package:crud_table/table/form_section.dart';
-import 'package:crud_table_example/user_able_task.dart';
-import 'package:crud_table_example/user_able_tasks_service.dart';
+import 'package:crud_table_example/user_task.dart';
+import 'package:crud_table_example/user_tasks_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -53,10 +53,10 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Expanded(
-            child: CrudTable<UserAbleTask>(
+            child: CrudTable<UserTask>(
               crudViewSource: createCrudSource(),
               onTap: (t) {
-                t as UserAbleTask;
+                t as UserTask;
               },
             ),
           ),
@@ -71,9 +71,9 @@ class _MyHomePageState extends State<MyHomePage> {
       columns: ["id", "code", "description", "active"],
       pageLimit: 20,
       rowHeight: 30,
-      emptyEntityFactory: () => UserAbleTask(),
+      emptyEntityFactory: () => UserTask(),
       createRows: (d, index) {
-        d as UserAbleTask;
+        d as UserTask;
         List<Widget> rows = [];
         rows.add(Text(d.id.toString(), style: const TextStyle(fontSize: 16)));
         rows.add(Text(d.taskCode.toString(), style: const TextStyle(fontSize: 16)));
@@ -82,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
         return rows;
       },
       createForm: (d) {
-        d as UserAbleTask;
+        d as UserTask;
 
         List<FormSection> fields = [];
 
@@ -181,27 +181,27 @@ class _MyHomePageState extends State<MyHomePage> {
         fields.add(section2);
         return fields;
       },
-      crudActionListener: CrudActionListener<UserAbleTask>(
+      crudActionListener: CrudActionListener<UserTask>(
         add: (data) async {
-          UserAbleTasksService userS =  UserAbleTasksService.instance!;
+          UserTasksService userS =  UserTasksService.instance!;
           return userS.addTask(data);
         },
         edit: (data) async {
-          data as UserAbleTask;
-          UserAbleTasksService userS =  UserAbleTasksService.instance!;
+          data as UserTask;
+          UserTasksService userS =  UserTasksService.instance!;
           return userS.updateTask(data, data.id!.toInt());
           return null;
         },
         delete: (data) async {
-          data as UserAbleTask;
-          UserAbleTasksService userS =  UserAbleTasksService.instance!;
+          data as UserTask;
+          UserTasksService userS =  UserTasksService.instance!;
           return userS.deleteTask(data.id!.toInt());
         },
       ),
       onPageChange: (pagination) async {
         // UserAbleTasksService userS =
         //     await context.read(userAbleTasksServiceProvider);
-        UserAbleTasksService userS =  UserAbleTasksService.instance!;
+        UserTasksService userS =  UserTasksService.instance!;
         return userS.getTasks(pagination.pageNumber, pagination.limit);
       },
     );
