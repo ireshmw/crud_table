@@ -187,8 +187,7 @@ class _CrudTableState<T> extends State<CrudTable> {
                             headerColumnSizes.clear();
                             var it = value.iterator;
                             while (it.moveNext()) {
-                              double? d = it.current;
-                              headerColumnSizes.add(d!);
+                              headerColumnSizes.add(it.current ?? 0.0);
                             }
                             context
                                 .read(tableBodyRebuildNotifierProvider)
