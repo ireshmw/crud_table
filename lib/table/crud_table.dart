@@ -1,13 +1,8 @@
 import 'dart:async';
 
-import 'crud_table_const.dart';
-import 'form_item.dart';
-import 'form_row.dart';
-import 'form_section.dart';
-import 'crud_table_data_model.dart';
-import 'crud_table_row_holder.dart';
+import 'package:crud_table/crud_table.dart';
+
 import 'package:fluid_kit/fluid_kit.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:split_view/split_view.dart';
@@ -18,6 +13,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 
 class CrudTableColumnSizeChangeNotifier extends ChangeNotifier {
   CrudTableColumnSizeChangeNotifier();
+
   void notify() {
     notifyListeners();
   }
@@ -31,8 +27,7 @@ class CrudTablePageNumberChangingNotifier extends StateNotifier<int> {
   }
 }
 
-class CrudTableTableDataNotifier<T>
-    extends StateNotifier<CrudTableDataModel<T>> {
+class CrudTableTableDataNotifier<T> extends StateNotifier<CrudTableDataModel<T>> {
   CrudTableTableDataNotifier(CrudTableDataModel<T> state) : super(state);
 
   void setData(CrudTableDataModel<T> data) {
@@ -42,6 +37,7 @@ class CrudTableTableDataNotifier<T>
 
 class CrudTableCrudActionChangingNotifier extends ChangeNotifier {
   CrudAction crudAction;
+
   CrudTableCrudActionChangingNotifier(this.crudAction);
 
   void changeAction(CrudAction action) {
@@ -64,36 +60,33 @@ class Pagination {
   }
 }
 
-class CrudTable<T> extends StatefulWidget {
+class CrudTable<T> extends ConsumerStatefulWidget {
   /// notify when user click on a row of the table
-  ValueChanged<dynamic> onTap;
-  CrudViewSource crudViewSource;
+  final ValueChanged<dynamic> onTap;
+  final CrudViewSource crudViewSource;
 
-  AutoDisposeChangeNotifierProvider<CrudTableCrudActionChangingNotifier>
-      crudActionChangeProvider = ChangeNotifierProvider.autoDispose(
-          (ref) => CrudTableCrudActionChangingNotifier(CrudAction.init));
+  final AutoDisposeChangeNotifierProvider<CrudTableCrudActionChangingNotifier> crudActionChangeProvider =
+      ChangeNotifierProvider.autoDispose((ref) => CrudTableCrudActionChangingNotifier(CrudAction.init));
 
-  var pageNumberChangeProvider = StateNotifierProvider.autoDispose(
-      (ref) => CrudTablePageNumberChangingNotifier());
-  var tableBodyRebuildNotifierProvider =
-      ChangeNotifierProvider.autoDispose<CrudTableColumnSizeChangeNotifier>(
-          (ref) => CrudTableColumnSizeChangeNotifier());
-  var tableDataProvider = StateNotifierProvider.autoDispose(
+  final  pageNumberChangeProvider =
+      StateNotifierProvider.autoDispose<CrudTablePageNumberChangingNotifier, int>((ref) => CrudTablePageNumberChangingNotifier());
+
+  final  tableBodyRebuildNotifierProvider =
+      ChangeNotifierProvider.autoDispose<CrudTableColumnSizeChangeNotifier>((ref) => CrudTableColumnSizeChangeNotifier());
+
+  final  tableDataProvider = StateNotifierProvider.autoDispose<CrudTableTableDataNotifier, CrudTableDataModel>(
       (ref) => CrudTableTableDataNotifier(CrudTableDataModel(isLoading: true)));
 
-  CrudTable({required this.crudViewSource, required this.onTap});
+  CrudTable({Key? key, required this.crudViewSource, required this.onTap}) : super(key: key);
 
   @override
-  _CrudTableState createState() => _CrudTableState(
-      crudActionChangeProvider,
-      pageNumberChangeProvider,
-      tableBodyRebuildNotifierProvider,
-      tableDataProvider);
+  ConsumerState<CrudTable> createState() {
+    return _CrudTableState(crudActionChangeProvider, pageNumberChangeProvider, tableBodyRebuildNotifierProvider, tableDataProvider);
+  }
 }
 
-class _CrudTableState<T> extends State<CrudTable> {
-  AutoDisposeChangeNotifierProvider<CrudTableCrudActionChangingNotifier>
-      crudActionChangeProvider;
+class _CrudTableState<T> extends ConsumerState<CrudTable> {
+  AutoDisposeChangeNotifierProvider<CrudTableCrudActionChangingNotifier> crudActionChangeProvider;
   var pageNumberChangeProvider;
   var tableBodyRebuildNotifierProvider;
   var tableDataProvider;
@@ -124,400 +117,292 @@ class _CrudTableState<T> extends State<CrudTable> {
 
   List<Widget> formWidgets = [];
 
-  _CrudTableState(this.crudActionChangeProvider, this.pageNumberChangeProvider,
-      this.tableBodyRebuildNotifierProvider, this.tableDataProvider);
+  _CrudTableState(this.crudActionChangeProvider, this.pageNumberChangeProvider, this.tableBodyRebuildNotifierProvider, this.tableDataProvider);
 
   @override
   Widget build(BuildContext context) {
-    return ProviderListener(
-        provider: tableDataProvider,
-        onChange: (context, data) {
-          WidgetsBinding.instance?.addPostFrameCallback((timeStamp) async {
-            data as CrudTableDataModel<T>;
-            canShowLastPageRefreshButton = false;
-            if (data.isError != null && data.isError == true) {
-              _loading = false;
-              _error = true;
-              context.read(tableBodyRebuildNotifierProvider).notify();
-            } else if (data.isLoading != null && data.isLoading == true) {
-              _loading = true;
-              _error = false;
-              context.read(tableBodyRebuildNotifierProvider).notify();
-            } else if (data.data != null) {
-              List<T> dataLs = data.data as List<T>;
-              if (dataLs.isNotEmpty) {
-                _hasMore = dataLs.length == widget.crudViewSource.pageLimit;
-                _loading = false;
-                _pageNumber = _pageNumber + 1;
-                _tableBodyData.addAll(dataLs);
-                context.read(tableBodyRebuildNotifierProvider).notify();
-              } else {
-                //TODO show end refresh button.
-                canShowLastPageRefreshButton = true;
-                _hasMore = false;
-                _loading = false;
-                context.read(tableBodyRebuildNotifierProvider).notify();
-              }
-            }
-          });
-        },
-        child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SplitView(
-              onWeightChanged: (value) {
-                refreshFormDueToMainSplitViewChange = true;
-                setState(() {});
-              },
-              indicator:
-                  const SplitIndicator(viewMode: SplitViewMode.Horizontal),
-              gripColor: Colors.grey.shade200,
-              gripSize: 4,
-              gripColorActive: Colors.grey.shade500,
-              viewMode: SplitViewMode.Horizontal,
+    ref.listen<CrudTableDataModel>(tableDataProvider, (previousData, data) {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+        data as CrudTableDataModel<T>;
+        canShowLastPageRefreshButton = false;
+        if (data.isError != null && data.isError == true) {
+          _loading = false;
+          _error = true;
+          ref.read(tableBodyRebuildNotifierProvider).notify();
+        } else if (data.isLoading != null && data.isLoading == true) {
+          _loading = true;
+          _error = false;
+          ref.read(tableBodyRebuildNotifierProvider).notify();
+        } else if (data.data != null) {
+          List<T> dataLs = data.data as List<T>;
+          if (dataLs.isNotEmpty) {
+            _hasMore = dataLs.length == widget.crudViewSource.pageLimit;
+            _loading = false;
+            _pageNumber = _pageNumber + 1;
+            _tableBodyData.addAll(dataLs);
+            ref.read(tableBodyRebuildNotifierProvider).notify();
+          } else {
+            //TODO show end refresh button.
+            canShowLastPageRefreshButton = true;
+            _hasMore = false;
+            _loading = false;
+            ref.read(tableBodyRebuildNotifierProvider).notify();
+          }
+        }
+      });
+    });
+
+    return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SplitView(
+          onWeightChanged: (value) {
+            refreshFormDueToMainSplitViewChange = true;
+            setState(() {});
+          },
+          indicator: const SplitIndicator(viewMode: SplitViewMode.Horizontal),
+          gripColor: Colors.grey.shade200,
+          gripSize: 4,
+          gripColorActive: Colors.grey.shade500,
+          viewMode: SplitViewMode.Horizontal,
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: 30,
-                      child: LayoutBuilder(builder: (context, constraints) {
-                        headerColumnFullSize = constraints.maxWidth;
-                        return SplitView(
-                          onWeightChanged: (value) {
-                            headerColumnSizes.clear();
-                            var it = value.iterator;
-                            while (it.moveNext()) {
-                              headerColumnSizes.add(it.current ?? 0.0);
-                            }
-                            context
-                                .read(tableBodyRebuildNotifierProvider)
-                                .notify();
-                          },
-                          indicator: const SplitIndicator(
-                              viewMode: SplitViewMode.Horizontal),
-                          gripColor: Colors.grey.shade200,
-                          gripSize: 4,
-                          gripColorActive: Colors.grey.shade500,
-                          viewMode: SplitViewMode.Horizontal,
-                          children: columnHeaderWidgets.isNotEmpty
-                              ? columnHeaderWidgets
-                              : crateHeaders(headerColumnFullSize),
-                        );
-                      }),
+                SizedBox(
+                  height: 30,
+                  child: LayoutBuilder(builder: (context, constraints) {
+                    headerColumnFullSize = constraints.maxWidth;
+                    return SplitView(
+                      onWeightChanged: (value) {
+                        headerColumnSizes.clear();
+                        var it = value.iterator;
+                        while (it.moveNext()) {
+                          headerColumnSizes.add(it.current ?? 0.0);
+                        }
+                        ref.read(tableBodyRebuildNotifierProvider).notify();
+                      },
+                      indicator: const SplitIndicator(viewMode: SplitViewMode.Horizontal),
+                      gripColor: Colors.grey.shade200,
+                      gripSize: 4,
+                      gripColorActive: Colors.grey.shade500,
+                      viewMode: SplitViewMode.Horizontal,
+                      children: columnHeaderWidgets.isNotEmpty ? columnHeaderWidgets : crateHeaders(headerColumnFullSize),
+                    );
+                  }),
+                ),
+                const Divider(
+                  height: 0,
+                ),
+                Consumer(
+                  builder: (context, ref, child) {
+                    ref.watch(tableBodyRebuildNotifierProvider);
+                    return Expanded(child: createTableBody(ref));
+                  },
+                ),
+              ],
+            ), // Table Section
+            SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 16),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.refresh),
+                              splashRadius: 16,
+                              tooltip: "Refresh",
+                              // color: Colors.white,
+                              onPressed: () {
+                                setTableInitSettings();
+                                notifyPageChange(0);
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add),
+                              splashRadius: 16,
+                              tooltip: "Add New",
+                              // color: Colors.white,
+                              onPressed: () {
+                                refreshDueToListItemClick = true;
+                                clickPos = null;
+                                ref.read(tableBodyRebuildNotifierProvider).notify();
+                                workingDataObj = widget.crudViewSource.getEmptyEntity();
+                                ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.add);
+                              },
+                            ),
+                            IconButton(
+                              splashRadius: 16,
+                              icon: const Icon(Icons.delete),
+                              tooltip: "Delete",
+                              // color: Colors.white,
+                              onPressed: () {
+                                ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.delete);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    const Divider(
-                      height: 0,
-                    ),
-                    Consumer(
-                      builder: (context, watch, child) {
-                        watch(tableBodyRebuildNotifierProvider);
-                        return Expanded(child: createTableBody());
+                  ), // form action buttons container
+
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        final v = ref.watch(crudActionChangeProvider).crudAction;
+                        return Form(
+                            key: _formKey,
+                            autovalidateMode: AutovalidateMode.onUserInteraction,
+                            child: v == CrudAction.init
+                                ? Container()
+                                : Column(
+                                    children: [
+                                      Column(
+                                        children:
+                                            widget.crudViewSource.createForm != null ? createFormItems(widget.crudViewSource, workingDataObj!) : [],
+                                      ),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(right: 16.0, top: 32),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              children: [
+                                                OutlinedButton(
+                                                  onPressed: () {
+                                                    workingDataObj = widget.crudViewSource.getEmptyEntity();
+                                                    ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.init);
+                                                  },
+                                                  child: const Text("Cancel"),
+                                                ),
+                                                const SizedBox(
+                                                  width: 16,
+                                                ),
+                                                ElevatedButton.icon(
+                                                  icon: v == CrudAction.delete
+                                                      ? const Icon(Icons.delete, size: 18)
+                                                      : const Icon(Icons.check_outlined, size: 18),
+                                                  style: ElevatedButton.styleFrom(backgroundColor: v == CrudAction.delete ? Colors.red : null),
+                                                  onPressed: () {
+                                                    if (_formKey.currentState!.validate()) {
+                                                      _formKey.currentState!.save();
+
+                                                      if (widget.crudViewSource.crudActionListener != null) {
+                                                        switch (v) {
+                                                          case CrudAction.add:
+                                                            {
+                                                              if (widget.crudViewSource.crudActionListener!.add != null) {
+                                                                Future<T> d =
+                                                                    widget.crudViewSource.crudActionListener!.add!(workingDataObj) as Future<T>;
+                                                                d.then((value) {
+                                                                  bool needToRefresh = false;
+                                                                  if (_tableBodyData.isNotEmpty) {
+                                                                    if (!_hasMore) {
+                                                                      if (_tableBodyData.length > widget.crudViewSource.pageLimit) {
+                                                                        var needToRemoveCount =
+                                                                            _tableBodyData.length % widget.crudViewSource.pageLimit;
+                                                                        int start = (_tableBodyData.length - needToRemoveCount) - 1;
+                                                                        int end = _tableBodyData.length - 1;
+                                                                        _tableBodyData.removeRange(start, end);
+                                                                        _pageNumber = _pageNumber - 1;
+                                                                      } else {
+                                                                        _pageNumber = 0;
+                                                                        _tableBodyData.clear();
+                                                                      }
+                                                                      needToRefresh = true;
+                                                                    }
+                                                                  } else {
+                                                                    _pageNumber = 0;
+                                                                    needToRefresh = true;
+                                                                  }
+
+                                                                  if (needToRefresh) {
+                                                                    notifyPageChange(_pageNumber);
+                                                                    ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.init);
+                                                                  }
+                                                                }, onError: (e) {
+                                                                  ScaffoldMessenger.of(context)
+                                                                      .showSnackBar(SnackBar(content: Text('Adding fails! ${e.toString()}')));
+                                                                });
+                                                              }
+                                                            }
+                                                            break;
+                                                          case CrudAction.edit:
+                                                            {
+                                                              if (widget.crudViewSource.crudActionListener!.edit != null) {
+                                                                Future? d = widget.crudViewSource.crudActionListener!.edit!(workingDataObj);
+                                                                assert(d != null, 'Edit method not returns null');
+                                                                d!.then(
+                                                                  (value) {
+                                                                    _tableBodyData[clickPos] = workingDataObj!;
+                                                                    ref.read(tableBodyRebuildNotifierProvider).notify();
+                                                                    ScaffoldMessenger.of(context)
+                                                                        .showSnackBar(const SnackBar(content: Text('Edit success!')));
+                                                                  },
+                                                                  onError: (e) {
+                                                                    ScaffoldMessenger.of(context)
+                                                                        .showSnackBar(SnackBar(content: Text('Edit fails! ${e.toString()}')));
+                                                                  },
+                                                                );
+                                                              }
+                                                            }
+                                                            break;
+                                                          case CrudAction.delete:
+                                                            {
+                                                              if (widget.crudViewSource.crudActionListener!.delete != null) {
+                                                                Future? d = widget.crudViewSource.crudActionListener!.delete!(workingDataObj);
+                                                                d.then(
+                                                                  (value) {
+                                                                    _tableBodyData.removeAt(clickPos as int);
+                                                                    ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.init);
+                                                                    ref.read(tableBodyRebuildNotifierProvider).notify();
+                                                                    ScaffoldMessenger.of(context)
+                                                                        .showSnackBar(const SnackBar(content: Text('Delete success!')));
+                                                                  },
+                                                                  onError: (e) {
+                                                                    ScaffoldMessenger.of(context)
+                                                                        .showSnackBar(SnackBar(content: Text('Delete fails! ${e.toString()}')));
+                                                                  },
+                                                                );
+                                                              }
+                                                            }
+                                                            break;
+                                                          case CrudAction.init:
+                                                            // TODO: Handle this case.
+                                                            break;
+                                                          case CrudAction.refresh:
+                                                            // TODO: Handle this case.
+                                                            break;
+                                                        }
+                                                      }
+                                                      //ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Processing Data')));
+                                                    }
+                                                  },
+                                                  label: Text(getActionBtnText(v)),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  ));
                       },
                     ),
-                  ],
-                ), // Table Section
-                SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 16),
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.refresh),
-                                  splashRadius: 16,
-                                  tooltip: "Refresh",
-                                  // color: Colors.white,
-                                  onPressed: () {
-                                    setTableInitSettings();
-                                    notifyPageChange(0);
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.add),
-                                  splashRadius: 16,
-                                  tooltip: "Add New",
-                                  // color: Colors.white,
-                                  onPressed: () {
-                                    refreshDueToListItemClick = true;
-                                    clickPos = null;
-                                    context
-                                        .read(tableBodyRebuildNotifierProvider)
-                                        .notify();
-                                    workingDataObj =
-                                        widget.crudViewSource.getEmptyEntity();
-                                    context
-                                        .read(crudActionChangeProvider.notifier)
-                                        .changeAction(CrudAction.add);
-                                  },
-                                ),
-                                IconButton(
-                                  splashRadius: 16,
-                                  icon: const Icon(Icons.delete),
-                                  tooltip: "Delete",
-                                  // color: Colors.white,
-                                  onPressed: () {
-                                    context
-                                        .read(crudActionChangeProvider.notifier)
-                                        .changeAction(CrudAction.delete);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ), // form action buttons container
-
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Consumer(
-                          builder: (context, watch, child) {
-                            final v =
-                                watch(crudActionChangeProvider).crudAction;
-                            return Form(
-                                key: _formKey,
-                                autovalidateMode:
-                                    AutovalidateMode.onUserInteraction,
-                                child: v == CrudAction.init
-                                    ? Container()
-                                    : Column(
-                                        children: [
-                                          Column(
-                                            children: widget.crudViewSource
-                                                        .createForm !=
-                                                    null
-                                                ? createFormItems(
-                                                    widget.crudViewSource,
-                                                    workingDataObj!)
-                                                : [],
-                                          ),
-                                          Align(
-                                            alignment: Alignment.centerRight,
-                                            child: SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    right: 16.0, top: 32),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
-                                                  children: [
-                                                    OutlinedButton(
-                                                      onPressed: () {
-                                                        workingDataObj = widget
-                                                            .crudViewSource
-                                                            .getEmptyEntity();
-                                                        context
-                                                            .read(
-                                                                crudActionChangeProvider
-                                                                    .notifier)
-                                                            .changeAction(
-                                                                CrudAction
-                                                                    .init);
-                                                      },
-                                                      child:
-                                                          const Text("Cancel"),
-                                                    ),
-                                                    const SizedBox(
-                                                      width: 16,
-                                                    ),
-                                                    ElevatedButton.icon(
-                                                      icon: v ==
-                                                              CrudAction.delete
-                                                          ? const Icon(
-                                                              Icons.delete,
-                                                              size: 18)
-                                                          : const Icon(
-                                                              Icons
-                                                                  .check_outlined,
-                                                              size: 18),
-                                                      style: ElevatedButton
-                                                          .styleFrom(
-                                                              primary: v ==
-                                                                      CrudAction
-                                                                          .delete
-                                                                  ? Colors.red
-                                                                  : null),
-                                                      onPressed: () {
-                                                        if (_formKey
-                                                            .currentState!
-                                                            .validate()) {
-                                                          _formKey.currentState!
-                                                              .save();
-
-                                                          if (widget
-                                                                  .crudViewSource
-                                                                  .crudActionListener !=
-                                                              null) {
-                                                            switch (v) {
-                                                              case CrudAction
-                                                                  .add:
-                                                                {
-                                                                  if (widget
-                                                                          .crudViewSource
-                                                                          .crudActionListener!
-                                                                          .add !=
-                                                                      null) {
-                                                                    Future<
-                                                                        T> d = widget
-                                                                            .crudViewSource
-                                                                            .crudActionListener!
-                                                                            .add!(workingDataObj)
-                                                                        as Future<
-                                                                            T>;
-                                                                    d.then(
-                                                                        (value) {
-                                                                      bool
-                                                                          needToRefresh =
-                                                                          false;
-                                                                      if (_tableBodyData
-                                                                          .isNotEmpty) {
-                                                                        if (!_hasMore) {
-                                                                          if (_tableBodyData.length >
-                                                                              widget.crudViewSource.pageLimit) {
-                                                                            var needToRemoveCount =
-                                                                                _tableBodyData.length % widget.crudViewSource.pageLimit;
-                                                                            int start =
-                                                                                (_tableBodyData.length - needToRemoveCount) - 1;
-                                                                            int end =
-                                                                                _tableBodyData.length - 1;
-                                                                            _tableBodyData.removeRange(start,
-                                                                                end);
-                                                                            _pageNumber =
-                                                                                _pageNumber - 1;
-                                                                          } else {
-                                                                            _pageNumber =
-                                                                                0;
-                                                                            _tableBodyData.clear();
-                                                                          }
-                                                                          needToRefresh =
-                                                                              true;
-                                                                        }
-                                                                      } else {
-                                                                        _pageNumber =
-                                                                            0;
-                                                                        needToRefresh =
-                                                                            true;
-                                                                      }
-
-                                                                      if (needToRefresh) {
-                                                                        notifyPageChange(
-                                                                            _pageNumber);
-                                                                        context
-                                                                            .read(crudActionChangeProvider.notifier)
-                                                                            .changeAction(CrudAction.init);
-                                                                      }
-                                                                    }, onError:
-                                                                            (e) {
-                                                                      ScaffoldMessenger.of(
-                                                                              context)
-                                                                          .showSnackBar(
-                                                                              SnackBar(content: Text('Adding fails! ${e.toString()}')));
-                                                                    });
-                                                                  }
-                                                                }
-                                                                break;
-                                                              case CrudAction
-                                                                  .edit:
-                                                                {
-                                                                  if (widget
-                                                                          .crudViewSource
-                                                                          .crudActionListener!
-                                                                          .edit !=
-                                                                      null) {
-                                                                    Future? d = widget
-                                                                        .crudViewSource
-                                                                        .crudActionListener!
-                                                                        .edit!(workingDataObj);
-                                                                    assert(
-                                                                        d !=
-                                                                            null,
-                                                                        'Edit method not returns null');
-                                                                    d!.then(
-                                                                      (value) {
-                                                                        _tableBodyData[clickPos] =
-                                                                            workingDataObj!;
-                                                                        context
-                                                                            .read(tableBodyRebuildNotifierProvider)
-                                                                            .notify();
-                                                                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                                                            content:
-                                                                                Text('Edit success!')));
-                                                                      },
-                                                                      onError:
-                                                                          (e) {
-                                                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                                                            content:
-                                                                                Text('Edit fails! ${e.toString()}')));
-                                                                      },
-                                                                    );
-                                                                  }
-                                                                }
-                                                                break;
-                                                              case CrudAction
-                                                                  .delete:
-                                                                {
-                                                                  if (widget
-                                                                          .crudViewSource
-                                                                          .crudActionListener!
-                                                                          .delete !=
-                                                                      null) {
-                                                                    Future? d = widget
-                                                                        .crudViewSource
-                                                                        .crudActionListener!
-                                                                        .delete!(workingDataObj);
-                                                                    d.then(
-                                                                      (value) {
-                                                                        _tableBodyData.removeAt(clickPos
-                                                                            as int);
-                                                                        context
-                                                                            .read(crudActionChangeProvider.notifier)
-                                                                            .changeAction(CrudAction.init);
-                                                                        context
-                                                                            .read(tableBodyRebuildNotifierProvider)
-                                                                            .notify();
-                                                                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                                                            content:
-                                                                                Text('Delete success!')));
-                                                                      },
-                                                                      onError:
-                                                                          (e) {
-                                                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                                                            content:
-                                                                                Text('Delete fails! ${e.toString()}')));
-                                                                      },
-                                                                    );
-                                                                  }
-                                                                }
-                                                                break;
-                                                            }
-                                                          }
-                                                          //ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Processing Data')));
-                                                        }
-                                                      },
-                                                      label: Text(
-                                                          getActionBtnText(v)),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ));
-                          },
-                        ),
-                      )
-                    ],
-                  ),
-                ), // Form section
-              ],
-            )));
+                  )
+                ],
+              ),
+            ), // Form section
+          ],
+        ));
   }
 
   List<Widget> crateHeaders(double headerColumnFullSize) {
@@ -544,8 +429,7 @@ class _CrudTableState<T> extends State<CrudTable> {
               alignment: Alignment.centerLeft,
               child: Text(
                 s,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 softWrap: false,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -567,12 +451,8 @@ class _CrudTableState<T> extends State<CrudTable> {
         sectionCount++;
         if (s.sectionTitle != null) {
           formWidgets.add(Padding(
-            padding: sectionCount == 1
-                ? const EdgeInsets.only(bottom: 24.0)
-                : const EdgeInsets.only(top: 24, bottom: 24.0),
-            child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(s.sectionTitle.toString())),
+            padding: sectionCount == 1 ? const EdgeInsets.only(bottom: 24.0) : const EdgeInsets.only(top: 24, bottom: 24.0),
+            child: Align(alignment: Alignment.centerLeft, child: Text(s.sectionTitle.toString())),
           ));
         }
 
@@ -603,7 +483,7 @@ class _CrudTableState<T> extends State<CrudTable> {
     return formWidgets;
   }
 
-  Widget createTableBody() {
+  Widget createTableBody(WidgetRef ref) {
     if (_tableBodyData.isEmpty) {
       if (_loading) {
         return const Center(
@@ -635,8 +515,7 @@ class _CrudTableState<T> extends State<CrudTable> {
                 controller: ScrollController(keepScrollOffset: true),
                 itemCount: _tableBodyData.length + (_hasMore ? 1 : 0),
                 itemBuilder: (context, index) {
-                  if (index == _tableBodyData.length - _nextPageThreshold &&
-                      _hasMore) {
+                  if (index == _tableBodyData.length - _nextPageThreshold && _hasMore) {
                     // if (!refreshDueToListItemClick) {
                     notifyPageChange(_pageNumber);
                     // }
@@ -655,8 +534,7 @@ class _CrudTableState<T> extends State<CrudTable> {
                         },
                         child: const Padding(
                           padding: EdgeInsets.all(16),
-                          child: Text(
-                              "Error while loading photos, tap to try again"),
+                          child: Text("Error while loading photos, tap to try again"),
                         ),
                       ));
                     } else {
@@ -686,9 +564,7 @@ class _CrudTableState<T> extends State<CrudTable> {
                         top: 0,
                         bottom: 0,
                         child: Container(
-                          color: clickPos != null && clickPos == index
-                              ? CrudTableConst.SELECTED_ITEM_COLOR
-                              : Colors.white,
+                          color: clickPos != null && clickPos == index ? CrudTableConst.selectedItemColor : Colors.white,
                           child: Align(
                               alignment: Alignment.centerLeft,
                               child: Padding(
@@ -705,7 +581,7 @@ class _CrudTableState<T> extends State<CrudTable> {
                     onVisibilityChanged: (visibilityInfo) {
                       if (index == _tableBodyData.length - 1) {
                         canShowLastPageRefreshButton = true;
-                        context.read(tableBodyRebuildNotifierProvider).notify();
+                        ref.read(tableBodyRebuildNotifierProvider).notify();
                       } else {
                         canShowLastPageRefreshButton = false;
                       }
@@ -715,28 +591,20 @@ class _CrudTableState<T> extends State<CrudTable> {
                         onTap: () {
                           // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(index.toString())));
                           workingDataObj = data;
-                          context
-                              .read(crudActionChangeProvider.notifier)
-                              .changeAction(CrudAction.edit);
+                          ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.edit);
                           widget.onTap(data);
 
                           if (clickPos != null && clickPos == index) {
                             clickPos = null;
-                            context
-                                .read(crudActionChangeProvider.notifier)
-                                .changeAction(CrudAction.init);
+                            ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.init);
                           } else {
                             clickPos = index;
                           }
                           refreshDueToListItemClick = true;
-                          context
-                              .read(tableBodyRebuildNotifierProvider)
-                              .notify();
+                          ref.read(tableBodyRebuildNotifierProvider).notify();
                         },
                         child: Container(
-                            color: clickPos != null && clickPos == index
-                                ? Colors.lightBlue.shade100
-                                : Colors.white,
+                            color: clickPos != null && clickPos == index ? Colors.lightBlue.shade100 : Colors.white,
                             child: Column(
                               children: [
                                 Stack(
@@ -788,7 +656,7 @@ class _CrudTableState<T> extends State<CrudTable> {
     // columnHeaderWidgets = crateHeaders();
     setTableInitSettings(); // reset
 
-    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) async {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       for (GlobalKey k in headerKeys) {
         headerColumnSizes.add(k.currentContext!.size!.width);
       }
@@ -798,18 +666,11 @@ class _CrudTableState<T> extends State<CrudTable> {
   }
 
   notifyPageChange(int page) {
-    Future<List> data = widget.crudViewSource.onPageChange(
-        Pagination(pageNumber: page, limit: widget.crudViewSource.pageLimit));
+    Future<List> data = widget.crudViewSource.onPageChange(Pagination(pageNumber: page, limit: widget.crudViewSource.pageLimit));
     data.then(
-      (value) => {
-        context
-            .read(tableDataProvider.notifier)
-            .setData(CrudTableDataModel(data: value))
-      },
+      (value) => {ref.read(tableDataProvider.notifier).setData(CrudTableDataModel(data: value))},
       onError: (r) {
-        context
-            .read(tableDataProvider.notifier)
-            .setData(CrudTableDataModel(isError: true));
+        ref.read(tableDataProvider.notifier).setData(CrudTableDataModel(isError: true));
       },
     );
   }
@@ -818,10 +679,7 @@ class _CrudTableState<T> extends State<CrudTable> {
     _hasMore = true;
     _pageNumber = 0;
     // ignore: unnecessary_null_comparison
-    pageLimit = widget.crudViewSource.pageLimit != null &&
-            widget.crudViewSource.pageLimit != 0
-        ? widget.crudViewSource.pageLimit
-        : 20;
+    pageLimit = widget.crudViewSource.pageLimit != null && widget.crudViewSource.pageLimit != 0 ? widget.crudViewSource.pageLimit : 20;
     _error = false;
     _loading = true;
     _tableBodyData = [];

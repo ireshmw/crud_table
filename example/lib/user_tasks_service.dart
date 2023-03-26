@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:crud_table_example/user_task.dart';
 
@@ -21,9 +20,7 @@ class UserTasksService {
   }
 
   static UserTasksService? get instance {
-    if (_userAbleTasksService == null) {
-      _userAbleTasksService = UserTasksService._();
-    }
+    _userAbleTasksService ??= UserTasksService._();
     return _userAbleTasksService;
   }
 
