@@ -29,6 +29,12 @@ class UserTasksService {
   }
 
   Future<UserTask> addTask(UserTask ableTask) async {
+    int? count = taskData?.length;
+    if(taskData!.isNotEmpty){
+      var lastItem = taskData!.last;
+      count = lastItem.id! ;
+    }
+    ableTask.id = (count! + 1);
     taskData!.add(ableTask);
     return Future.value(ableTask);
   }
