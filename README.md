@@ -1,7 +1,6 @@
 # CRUD Table Flutter
 
-CRUD Table Flutter is a package for crating CURD-UI for your entity/object/class easily.
-It consists of a Lazy loading function, resizable columns, and integrated CRUD Form.
+CRUD Table Flutter is a powerful Flutter package that simplifies the creation of CRUD UI for your entity, object or class. This package features a highly efficient lazy loading function, resizable columns, and an integrated CRUD form to provide a seamless user experience. With CRUD Table Flutter, you can easily manage and organize your data, boosting your productivity and efficiency.
 
 ## Features
 - Lazy loading Table
@@ -42,9 +41,7 @@ import 'package:crud_table/crud_table.dart';
 
 <img src="https://user-images.githubusercontent.com/24836910/143689737-57858024-9084-48b3-9d48-07befc3c964e.png" />
 
-When you use `CrudTable` there you have to pass a `CurdViewSource` field, and it cannot be `null`. <br>
-In `CurdViewSource` you can see there is a function field call `emptyEntityFactory` there you have to provide an empty Object 
-which you are use with this CRUD UI. <br>
+When using CrudTable, a CrudViewSource field must be passed and cannot be null. In the CrudViewSource, you will find a function field called emptyEntityFactory. This function requires an empty object that will be used with the CRUD UI. <br>
 **Ex** :<br>
   &nbsp;Let's say you use` User.class` with this CrudTable, then the `emptyEntityFactory` will be<br>
 ```
