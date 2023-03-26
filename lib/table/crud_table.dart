@@ -27,8 +27,7 @@ class CrudTablePageNumberChangingNotifier extends StateNotifier<int> {
   }
 }
 
-class CrudTableTableDataNotifier<T>
-    extends StateNotifier<CrudTableDataModel<T>> {
+class CrudTableTableDataNotifier<T> extends StateNotifier<CrudTableDataModel<T>> {
   CrudTableTableDataNotifier(CrudTableDataModel<T> state) : super(state);
 
   void setData(CrudTableDataModel<T> data) {
@@ -66,38 +65,32 @@ class CrudTable<T> extends ConsumerStatefulWidget {
   final ValueChanged<dynamic> onTap;
   final CrudViewSource crudViewSource;
 
-  final AutoDisposeChangeNotifierProvider<CrudTableCrudActionChangingNotifier>
-      crudActionChangeProvider = ChangeNotifierProvider.autoDispose(
-          (ref) => CrudTableCrudActionChangingNotifier(CrudAction.init));
+  final AutoDisposeChangeNotifierProvider<CrudTableCrudActionChangingNotifier> crudActionChangeProvider =
+      ChangeNotifierProvider.autoDispose((ref) => CrudTableCrudActionChangingNotifier(CrudAction.init));
 
-  final pageNumberChangeProvider = StateNotifierProvider.autoDispose<
-      CrudTablePageNumberChangingNotifier,
-      int>((ref) => CrudTablePageNumberChangingNotifier());
+  final AutoDisposeStateNotifierProvider<CrudTablePageNumberChangingNotifier, int> pageNumberChangeProvider =
+      StateNotifierProvider.autoDispose<CrudTablePageNumberChangingNotifier, int>((ref) => CrudTablePageNumberChangingNotifier());
 
-  final tableBodyRebuildNotifierProvider =
-      ChangeNotifierProvider.autoDispose<CrudTableColumnSizeChangeNotifier>(
-          (ref) => CrudTableColumnSizeChangeNotifier());
+  final AutoDisposeChangeNotifierProvider<CrudTableColumnSizeChangeNotifier> tableBodyRebuildNotifierProvider =
+      ChangeNotifierProvider.autoDispose<CrudTableColumnSizeChangeNotifier>((ref) => CrudTableColumnSizeChangeNotifier());
 
-  final tableDataProvider = StateNotifierProvider.autoDispose<
-          CrudTableTableDataNotifier, CrudTableDataModel>(
-      (ref) => CrudTableTableDataNotifier(CrudTableDataModel(isLoading: true)));
+  final AutoDisposeStateNotifierProvider<CrudTableTableDataNotifier, CrudTableDataModel> tableDataProvider =
+      StateNotifierProvider.autoDispose<CrudTableTableDataNotifier, CrudTableDataModel>(
+          (ref) => CrudTableTableDataNotifier(CrudTableDataModel(isLoading: true)));
 
-  CrudTable({Key? key, required this.crudViewSource, required this.onTap})
-      : super(key: key);
+  CrudTable({Key? key, required this.crudViewSource, required this.onTap}) : super(key: key);
 
   @override
   ConsumerState<CrudTable> createState() {
-    return _CrudTableState(crudActionChangeProvider, pageNumberChangeProvider,
-        tableBodyRebuildNotifierProvider, tableDataProvider);
+    return _CrudTableState();
   }
 }
 
 class _CrudTableState<T> extends ConsumerState<CrudTable> {
-  AutoDisposeChangeNotifierProvider<CrudTableCrudActionChangingNotifier>
-      crudActionChangeProvider;
-  var pageNumberChangeProvider;
-  var tableBodyRebuildNotifierProvider;
-  var tableDataProvider;
+  late AutoDisposeChangeNotifierProvider<CrudTableCrudActionChangingNotifier> crudActionChangeProvider;
+  late AutoDisposeStateNotifierProvider<CrudTablePageNumberChangingNotifier, int> pageNumberChangeProvider;
+  late AutoDisposeChangeNotifierProvider<CrudTableColumnSizeChangeNotifier> tableBodyRebuildNotifierProvider;
+  late AutoDisposeStateNotifierProvider<CrudTableTableDataNotifier, CrudTableDataModel> tableDataProvider;
 
   late int currentPageKey;
   late bool _hasMore;
@@ -116,7 +109,7 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
 
   final _formKey = GlobalKey<FormState>();
   T? workingDataObj;
-  late var clickPos;
+  late int? clickPos;
   bool refreshDueToListItemClick = false;
   bool refreshFormDueToMainSplitViewChange = false;
   bool canShowLastPageRefreshButton = false;
@@ -124,9 +117,6 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
   List<FormSection> sections = [];
 
   List<Widget> formWidgets = [];
-
-  _CrudTableState(this.crudActionChangeProvider, this.pageNumberChangeProvider,
-      this.tableBodyRebuildNotifierProvider, this.tableDataProvider);
 
   @override
   Widget build(BuildContext context) {
@@ -190,15 +180,12 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
                         }
                         ref.read(tableBodyRebuildNotifierProvider).notify();
                       },
-                      indicator: const SplitIndicator(
-                          viewMode: SplitViewMode.Horizontal),
+                      indicator: const SplitIndicator(viewMode: SplitViewMode.Horizontal),
                       gripColor: Colors.grey.shade200,
                       gripSize: 4,
                       gripColorActive: Colors.grey.shade500,
                       viewMode: SplitViewMode.Horizontal,
-                      children: columnHeaderWidgets.isNotEmpty
-                          ? columnHeaderWidgets
-                          : crateHeaders(headerColumnFullSize),
+                      children: columnHeaderWidgets.isNotEmpty ? columnHeaderWidgets : crateHeaders(headerColumnFullSize),
                     );
                   }),
                 ),
@@ -243,14 +230,9 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
                               onPressed: () {
                                 refreshDueToListItemClick = true;
                                 clickPos = null;
-                                ref
-                                    .read(tableBodyRebuildNotifierProvider)
-                                    .notify();
-                                workingDataObj =
-                                    widget.crudViewSource.getEmptyEntity();
-                                ref
-                                    .read(crudActionChangeProvider.notifier)
-                                    .changeAction(CrudAction.add);
+                                ref.read(tableBodyRebuildNotifierProvider).notify();
+                                workingDataObj = widget.crudViewSource.getEmptyEntity();
+                                ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.add);
                               },
                             ),
                             IconButton(
@@ -259,9 +241,7 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
                               tooltip: "Delete",
                               // color: Colors.white,
                               onPressed: () {
-                                ref
-                                    .read(crudActionChangeProvider.notifier)
-                                    .changeAction(CrudAction.delete);
+                                ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.delete);
                               },
                             ),
                           ],
@@ -274,47 +254,31 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
                     padding: const EdgeInsets.all(16.0),
                     child: Consumer(
                       builder: (context, ref, child) {
-                        final v =
-                            ref.watch(crudActionChangeProvider).crudAction;
+                        final v = ref.watch(crudActionChangeProvider).crudAction;
                         return Form(
                             key: _formKey,
-                            autovalidateMode:
-                                AutovalidateMode.onUserInteraction,
+                            autovalidateMode: AutovalidateMode.onUserInteraction,
                             child: v == CrudAction.init
                                 ? Container()
                                 : Column(
                                     children: [
                                       Column(
                                         children:
-                                            widget.crudViewSource.createForm !=
-                                                    null
-                                                ? createFormItems(
-                                                    widget.crudViewSource,
-                                                    workingDataObj!)
-                                                : [],
+                                            widget.crudViewSource.createForm != null ? createFormItems(widget.crudViewSource, workingDataObj!) : [],
                                       ),
                                       Align(
                                         alignment: Alignment.centerRight,
                                         child: SingleChildScrollView(
                                           scrollDirection: Axis.horizontal,
                                           child: Padding(
-                                            padding: const EdgeInsets.only(
-                                                right: 16.0, top: 32),
+                                            padding: const EdgeInsets.only(right: 16.0, top: 32),
                                             child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.end,
+                                              mainAxisAlignment: MainAxisAlignment.end,
                                               children: [
                                                 OutlinedButton(
                                                   onPressed: () {
-                                                    workingDataObj = widget
-                                                        .crudViewSource
-                                                        .getEmptyEntity();
-                                                    ref
-                                                        .read(
-                                                            crudActionChangeProvider
-                                                                .notifier)
-                                                        .changeAction(
-                                                            CrudAction.init);
+                                                    workingDataObj = widget.crudViewSource.getEmptyEntity();
+                                                    ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.init);
                                                   },
                                                   child: const Text("Cancel"),
                                                 ),
@@ -323,183 +287,88 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
                                                 ),
                                                 ElevatedButton.icon(
                                                   icon: v == CrudAction.delete
-                                                      ? const Icon(Icons.delete,
-                                                          size: 18)
-                                                      : const Icon(
-                                                          Icons.check_outlined,
-                                                          size: 18),
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                          backgroundColor: v ==
-                                                                  CrudAction
-                                                                      .delete
-                                                              ? Colors.red
-                                                              : null),
+                                                      ? const Icon(Icons.delete, size: 18)
+                                                      : const Icon(Icons.check_outlined, size: 18),
+                                                  style: ElevatedButton.styleFrom(backgroundColor: v == CrudAction.delete ? Colors.red : null),
                                                   onPressed: () {
-                                                    if (_formKey.currentState!
-                                                        .validate()) {
-                                                      _formKey.currentState!
-                                                          .save();
+                                                    if (_formKey.currentState!.validate()) {
+                                                      _formKey.currentState!.save();
 
-                                                      if (widget.crudViewSource
-                                                              .crudActionListener !=
-                                                          null) {
+                                                      if (widget.crudViewSource.crudActionListener != null) {
                                                         switch (v) {
                                                           case CrudAction.add:
                                                             {
-                                                              if (widget
-                                                                      .crudViewSource
-                                                                      .crudActionListener!
-                                                                      .add !=
-                                                                  null) {
-                                                                Future<
-                                                                    T> d = widget
-                                                                        .crudViewSource
-                                                                        .crudActionListener!
-                                                                        .add!(workingDataObj)
-                                                                    as Future<
-                                                                        T>;
+                                                              if (widget.crudViewSource.crudActionListener!.add != null) {
+                                                                Future<T> d =
+                                                                    widget.crudViewSource.crudActionListener!.add!(workingDataObj) as Future<T>;
                                                                 d.then((value) {
-                                                                  bool
-                                                                      needToRefresh =
-                                                                      false;
-                                                                  if (_tableBodyData
-                                                                      .isNotEmpty) {
+                                                                  bool needToRefresh = false;
+                                                                  if (_tableBodyData.isNotEmpty) {
                                                                     if (!_hasMore) {
-                                                                      if (_tableBodyData
-                                                                              .length >
-                                                                          widget
-                                                                              .crudViewSource
-                                                                              .pageLimit) {
+                                                                      if (_tableBodyData.length > widget.crudViewSource.pageLimit) {
                                                                         var needToRemoveCount =
-                                                                            _tableBodyData.length %
-                                                                                widget.crudViewSource.pageLimit;
-                                                                        int start =
-                                                                            (_tableBodyData.length - needToRemoveCount) -
-                                                                                1;
-                                                                        int end =
-                                                                            _tableBodyData.length -
-                                                                                1;
-                                                                        _tableBodyData.removeRange(
-                                                                            start,
-                                                                            end);
-                                                                        _pageNumber =
-                                                                            _pageNumber -
-                                                                                1;
+                                                                            _tableBodyData.length % widget.crudViewSource.pageLimit;
+                                                                        int start = (_tableBodyData.length - needToRemoveCount) - 1;
+                                                                        int end = _tableBodyData.length - 1;
+                                                                        _tableBodyData.removeRange(start, end);
+                                                                        _pageNumber = _pageNumber - 1;
                                                                       } else {
-                                                                        _pageNumber =
-                                                                            0;
-                                                                        _tableBodyData
-                                                                            .clear();
+                                                                        _pageNumber = 0;
+                                                                        _tableBodyData.clear();
                                                                       }
-                                                                      needToRefresh =
-                                                                          true;
+                                                                      needToRefresh = true;
                                                                     }
                                                                   } else {
-                                                                    _pageNumber =
-                                                                        0;
-                                                                    needToRefresh =
-                                                                        true;
+                                                                    _pageNumber = 0;
+                                                                    needToRefresh = true;
                                                                   }
 
                                                                   if (needToRefresh) {
-                                                                    notifyPageChange(
-                                                                        _pageNumber);
-                                                                    ref
-                                                                        .read(crudActionChangeProvider
-                                                                            .notifier)
-                                                                        .changeAction(
-                                                                            CrudAction.init);
+                                                                    notifyPageChange(_pageNumber);
+                                                                    ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.init);
                                                                   }
-                                                                }, onError:
-                                                                    (e) {
-                                                                  ScaffoldMessenger.of(
-                                                                          context)
-                                                                      .showSnackBar(SnackBar(
-                                                                          content:
-                                                                              Text('Adding fails! ${e.toString()}')));
+                                                                }, onError: (e) {
+                                                                  ScaffoldMessenger.of(context)
+                                                                      .showSnackBar(SnackBar(content: Text('Adding fails! ${e.toString()}')));
                                                                 });
                                                               }
                                                             }
                                                             break;
                                                           case CrudAction.edit:
                                                             {
-                                                              if (widget
-                                                                      .crudViewSource
-                                                                      .crudActionListener!
-                                                                      .edit !=
-                                                                  null) {
-                                                                Future? d = widget
-                                                                    .crudViewSource
-                                                                    .crudActionListener!
-                                                                    .edit!(workingDataObj);
-                                                                assert(
-                                                                    d != null,
-                                                                    'Edit method not returns null');
+                                                              if (widget.crudViewSource.crudActionListener!.edit != null) {
+                                                                Future? d = widget.crudViewSource.crudActionListener!.edit!(workingDataObj);
+                                                                assert(d != null, 'Edit method not returns null');
                                                                 d!.then(
                                                                   (value) {
-                                                                    _tableBodyData[
-                                                                            clickPos] =
-                                                                        workingDataObj!;
-                                                                    ref
-                                                                        .read(
-                                                                            tableBodyRebuildNotifierProvider)
-                                                                        .notify();
-                                                                    ScaffoldMessenger.of(
-                                                                            context)
-                                                                        .showSnackBar(const SnackBar(
-                                                                            content:
-                                                                                Text('Edit success!')));
+                                                                    _tableBodyData[clickPos!] = workingDataObj!;
+                                                                    ref.read(tableBodyRebuildNotifierProvider).notify();
+                                                                    ScaffoldMessenger.of(context)
+                                                                        .showSnackBar(const SnackBar(content: Text('Edit success!')));
                                                                   },
                                                                   onError: (e) {
-                                                                    ScaffoldMessenger.of(
-                                                                            context)
-                                                                        .showSnackBar(SnackBar(
-                                                                            content:
-                                                                                Text('Edit fails! ${e.toString()}')));
+                                                                    ScaffoldMessenger.of(context)
+                                                                        .showSnackBar(SnackBar(content: Text('Edit fails! ${e.toString()}')));
                                                                   },
                                                                 );
                                                               }
                                                             }
                                                             break;
-                                                          case CrudAction
-                                                              .delete:
+                                                          case CrudAction.delete:
                                                             {
-                                                              if (widget
-                                                                      .crudViewSource
-                                                                      .crudActionListener!
-                                                                      .delete !=
-                                                                  null) {
-                                                                Future? d = widget
-                                                                    .crudViewSource
-                                                                    .crudActionListener!
-                                                                    .delete!(workingDataObj);
+                                                              if (widget.crudViewSource.crudActionListener!.delete != null) {
+                                                                Future? d = widget.crudViewSource.crudActionListener!.delete!(workingDataObj);
                                                                 d.then(
                                                                   (value) {
-                                                                    _tableBodyData.removeAt(
-                                                                        clickPos
-                                                                            as int);
-                                                                    ref
-                                                                        .read(crudActionChangeProvider
-                                                                            .notifier)
-                                                                        .changeAction(
-                                                                            CrudAction.init);
-                                                                    ref
-                                                                        .read(
-                                                                            tableBodyRebuildNotifierProvider)
-                                                                        .notify();
-                                                                    ScaffoldMessenger.of(
-                                                                            context)
-                                                                        .showSnackBar(const SnackBar(
-                                                                            content:
-                                                                                Text('Delete success!')));
+                                                                    _tableBodyData.removeAt(clickPos as int);
+                                                                    ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.init);
+                                                                    ref.read(tableBodyRebuildNotifierProvider).notify();
+                                                                    ScaffoldMessenger.of(context)
+                                                                        .showSnackBar(const SnackBar(content: Text('Delete success!')));
                                                                   },
                                                                   onError: (e) {
-                                                                    ScaffoldMessenger.of(
-                                                                            context)
-                                                                        .showSnackBar(SnackBar(
-                                                                            content:
-                                                                                Text('Delete fails! ${e.toString()}')));
+                                                                    ScaffoldMessenger.of(context)
+                                                                        .showSnackBar(SnackBar(content: Text('Delete fails! ${e.toString()}')));
                                                                   },
                                                                 );
                                                               }
@@ -508,8 +377,7 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
                                                           case CrudAction.init:
                                                             // TODO: Handle this case.
                                                             break;
-                                                          case CrudAction
-                                                              .refresh:
+                                                          case CrudAction.refresh:
                                                             // TODO: Handle this case.
                                                             break;
                                                         }
@@ -517,8 +385,7 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
                                                       //ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Processing Data')));
                                                     }
                                                   },
-                                                  label:
-                                                      Text(getActionBtnText(v)),
+                                                  label: Text(getActionBtnText(v)),
                                                 ),
                                               ],
                                             ),
@@ -561,8 +428,7 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
               alignment: Alignment.centerLeft,
               child: Text(
                 s,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 softWrap: false,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -584,12 +450,8 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
         sectionCount++;
         if (s.sectionTitle != null) {
           formWidgets.add(Padding(
-            padding: sectionCount == 1
-                ? const EdgeInsets.only(bottom: 24.0)
-                : const EdgeInsets.only(top: 24, bottom: 24.0),
-            child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(s.sectionTitle.toString())),
+            padding: sectionCount == 1 ? const EdgeInsets.only(bottom: 24.0) : const EdgeInsets.only(top: 24, bottom: 24.0),
+            child: Align(alignment: Alignment.centerLeft, child: Text(s.sectionTitle.toString())),
           ));
         }
 
@@ -652,8 +514,7 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
                 controller: ScrollController(keepScrollOffset: true),
                 itemCount: _tableBodyData.length + (_hasMore ? 1 : 0),
                 itemBuilder: (context, index) {
-                  if (index == _tableBodyData.length - _nextPageThreshold &&
-                      _hasMore) {
+                  if (index == _tableBodyData.length - _nextPageThreshold && _hasMore) {
                     // if (!refreshDueToListItemClick) {
                     notifyPageChange(_pageNumber);
                     // }
@@ -672,8 +533,7 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
                         },
                         child: const Padding(
                           padding: EdgeInsets.all(16),
-                          child: Text(
-                              "Error while loading photos, tap to try again"),
+                          child: Text("Error while loading photos, tap to try again"),
                         ),
                       ));
                     } else {
@@ -703,9 +563,7 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
                         top: 0,
                         bottom: 0,
                         child: Container(
-                          color: clickPos != null && clickPos == index
-                              ? CrudTableConst.selectedItemColor
-                              : Colors.white,
+                          color: clickPos != null && clickPos == index ? CrudTableConst.selectedItemColor : Colors.white,
                           child: Align(
                               alignment: Alignment.centerLeft,
                               child: Padding(
@@ -732,16 +590,12 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
                         onTap: () {
                           // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(index.toString())));
                           workingDataObj = data;
-                          ref
-                              .read(crudActionChangeProvider.notifier)
-                              .changeAction(CrudAction.edit);
+                          ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.edit);
                           widget.onTap(data);
 
                           if (clickPos != null && clickPos == index) {
                             clickPos = null;
-                            ref
-                                .read(crudActionChangeProvider.notifier)
-                                .changeAction(CrudAction.init);
+                            ref.read(crudActionChangeProvider.notifier).changeAction(CrudAction.init);
                           } else {
                             clickPos = index;
                           }
@@ -749,9 +603,7 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
                           ref.read(tableBodyRebuildNotifierProvider).notify();
                         },
                         child: Container(
-                            color: clickPos != null && clickPos == index
-                                ? Colors.lightBlue.shade100
-                                : Colors.white,
+                            color: clickPos != null && clickPos == index ? Colors.lightBlue.shade100 : Colors.white,
                             child: Column(
                               children: [
                                 Stack(
@@ -800,6 +652,10 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
     columnHeaderWidgets = [];
     headerColumnSizes = [];
     headerKeys = [];
+    crudActionChangeProvider = widget.crudActionChangeProvider;
+    pageNumberChangeProvider = widget.pageNumberChangeProvider;
+    tableBodyRebuildNotifierProvider = widget.tableBodyRebuildNotifierProvider;
+    tableDataProvider = widget.tableDataProvider;
     // columnHeaderWidgets = crateHeaders();
     setTableInitSettings(); // reset
 
@@ -813,18 +669,11 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
   }
 
   notifyPageChange(int page) {
-    Future<List> data = widget.crudViewSource.onPageChange(
-        Pagination(pageNumber: page, limit: widget.crudViewSource.pageLimit));
+    Future<List> data = widget.crudViewSource.onPageChange(Pagination(pageNumber: page, limit: widget.crudViewSource.pageLimit));
     data.then(
-      (value) => {
-        ref
-            .read(tableDataProvider.notifier)
-            .setData(CrudTableDataModel(data: value))
-      },
+      (value) => {ref.read(tableDataProvider.notifier).setData(CrudTableDataModel(data: value))},
       onError: (r) {
-        ref
-            .read(tableDataProvider.notifier)
-            .setData(CrudTableDataModel(isError: true));
+        ref.read(tableDataProvider.notifier).setData(CrudTableDataModel(isError: true));
       },
     );
   }
@@ -833,10 +682,7 @@ class _CrudTableState<T> extends ConsumerState<CrudTable> {
     _hasMore = true;
     _pageNumber = 0;
     // ignore: unnecessary_null_comparison
-    pageLimit = widget.crudViewSource.pageLimit != null &&
-            widget.crudViewSource.pageLimit != 0
-        ? widget.crudViewSource.pageLimit
-        : 20;
+    pageLimit = widget.crudViewSource.pageLimit != null && widget.crudViewSource.pageLimit != 0 ? widget.crudViewSource.pageLimit : 20;
     _error = false;
     _loading = true;
     _tableBodyData = [];

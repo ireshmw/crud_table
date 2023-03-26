@@ -1,6 +1,6 @@
 name: crud_table
 description: CRUD Table Flutter is a package for crating CURD-UI for your entity/object/class easily. It consists of a Lazy loading function, resizable columns, and integrated CRUD Form.
-version: 0.0.5
+version: 0.0.6
 homepage: https://github.com/ireshmw/crud_table
 
 environment:
@@ -14,7 +14,7 @@ dependencies:
   fluid_kit: ^2.1.0
   flutter_riverpod: ^1.0.1
   split_view: ^3.1.0
-  visibility_detector: ^0.3.3
+  visibility_detector: ^0.4.0+2
 
 
 dev_dependencies:

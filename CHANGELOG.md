@@ -3,6 +3,7 @@
 ## 0.0.3 - 2021/11/27 - Code formatting done
 ## 0.0.4 - 2023/03/26 - Upgraded dependencies for Riverpod and Visibility Detector.Conducted codebase cleanup to ensure compatibility with new dependencies.
 ## 0.0.5 - 2023/03/26 - code formatting done
+## 0.0.6 - 2023/03/26 - fixed lint errors, visibility_detector version update.
 
 
 
