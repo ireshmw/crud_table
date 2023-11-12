@@ -1,7 +1,8 @@
-import 'crud_action_listener.dart';
-import 'form_section.dart';
-import 'crud_table.dart';
 import 'package:flutter/cupertino.dart';
+
+import 'crud_action_listener.dart';
+import 'crud_table.dart';
+import 'form_section.dart';
 
 class CrudViewSource<T> {
   /// columns of the table, provide name of the column as a string array
@@ -28,14 +29,15 @@ class CrudViewSource<T> {
   ///form crud actions listener (add, delete, update)
   CrudActionListener? crudActionListener;
 
-  CrudViewSource(
-      {required this.columns,
-      required this.rowHeight,
-      required this.pageLimit,
-      required this.emptyEntityFactory,
-      required this.createRows,
-      this.createForm,
-      required this.onPageChange,
-      this.crudActionListener});
+  CrudViewSource({
+    required this.columns,
+    required this.rowHeight,
+    required this.pageLimit,
+    required this.emptyEntityFactory,
+    required this.createRows,
+    this.createForm,
+    required this.onPageChange,
+    this.crudActionListener,
+  });
   T getEmptyEntity() => emptyEntityFactory();
 }
